@@ -1,0 +1,55 @@
+## Assignment 4 - Particle Systems, Intersections, and Hierarchies
+
+# Jansen Khoe (101260040)
+
+# OS
+Made in windows 
+
+# Files Modified
+
+# NOTE (A4 was made using the particleDemo as the base code so the changes from A1-A3 are mostly missing.)
+
+From A1
+
+- CMakeLists.txt (Changed project name and file structure)
+- game.h (Added a new vector for timers)
+- game.cpp (Modified the game's update function for collision detection. Modified the game's update function to check for timers. When timers finish destroy it and the explosion it corresponds to)
+- timer.h (Added a new constructor)
+- timer.cpp (modified the start and finish methods)
+
+From A2
+
+- game.h (Added a player game object reference)
+- game_object.h (Added an enum of game object types in the `game` namespace)
+- enemy_game_object.h/ccp (Added an enemy game obejct which inherits from game object.)
+- colletible_game_object.h/ccp (Added a collectible game object which inherits from game object.)
+- player_game_object.h (Added a new attribute for a time to keep track of how long the player is invincible for and to add invincibilty)
+- game.ccp (Changed the collision logic to check for what type of object the player is colliding with and applying differnent cases for each type. Also checks if player is invincible before dealing damage. Also changes sprite on invincible)
+- included <cstdlib> to get random numbers.
+
+From A3
+
+- changed the `view_matrix` in game.ccp to be relative to the player's position so that the player is always centered on the player.
+- made a new Sprite for the background with larger starting vertexes so that when the repeating flag is enabled it will create tiling.
+- Changed the HandleControls() method and added some new variables to add physics based movement with acceleration. Capped at 0.333 per update since I am assuming the game is running at 60fps. 2/60 = 0.3333
+- Seperated the game_object Scale into X and Y components and changed the scale of a collectible object.
+- Defined new attribute for orbitting. When an object is supposed to orbit I set a uniform orbit_matrix. into the vertex shader based of the object's orbit_pivot attribute. Added an axe to the game that showcases this.
+- new bool attribute that defines if an object should be rendered in greyscale or not. Changed the collectible code to not disapear anymore on contact but just turns into a ghost.
+
+From A4
+
+- Changed HandleMovement() to fire out a bullet by instantiating a new bullet class.
+- Bullets have their own Timer as a class attribute to keep track of lifespan. By default it lives for 0.5 seconds.
+- Bullets, Bullet particles, and explosions all have their own seperate array for organization.
+- enemies are randomly spawned on starting the game. 2 enemies are nearly stacked on top of each other to test bullet collision correctness. (hitting only one enemy at a time.)
+- Collision between enemies and bullets is implemented within the game's update function. Using ray-circle collision.
+- each bullet has a blue trail that is longer and narrower than the player's. This is implemented through changing the theta and r of a Particles class.
+- Explosions are triggered on eney death. Lasts for 5 seconds and the rgb values of the particle's explosions are increased in the particle_fragment_shader as time increases to darken the particles.
+- blade class is made to have a new attribute for parents. Independently rotates but follows the player's tranform. Implemented within the Blade class update function. 
+
+# Sprites 
+
+Player sprite was created by me in Aesprite
+Explosion sprite was created by me in Aesprite
+Enemy sprite was created by me in Aesprite
+Collectible sprite was made by me in aesprite
