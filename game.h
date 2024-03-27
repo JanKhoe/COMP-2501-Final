@@ -76,6 +76,7 @@ namespace game {
             PlayerGameObject* player;
             float accel;
             float friction;
+            float recoilForce;
             float HorVelocity;
             float VerVelocity;
             bool applied_force_hor;

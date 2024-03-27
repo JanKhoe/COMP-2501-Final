@@ -39,6 +39,8 @@ namespace game {
             // Get vector pointing to the right side of the game object
             glm::vec3 GetRight(void) const;
 
+            GameObject* GetParent(void) const { return parent_; };
+
             Shader* GetShader() { return shader_; };
 
             // Setters

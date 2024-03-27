@@ -16,6 +16,7 @@ GameObject::GameObject(const glm::vec3 &position, Geometry *geom, Shader *shader
     geometry_ = geom;
     shader_ = shader;
     texture_ = texture;
+    parent_ = nullptr;
 }
 
 

@@ -97,10 +97,11 @@ void Game::Init(void)
     // Initialize time
     current_time_ = 0.0;
     accel = 0.0005f;
-    friction = 0.002f;
+    friction = 0.0025f;
     HorVelocity = 0.0f;
     VerVelocity = 0.0f;
     canMove = true;
+    recoilForce = 0.005f;
 
     globalVel = glm::vec3(0.0f, 0.0f, 0.0f);
 }
@@ -295,24 +296,24 @@ void Game::HandleControls(double delta_time)
         VerVelocity = 0.002;
         //Since a game runs in approximately 60fps that means there are 60 update calls in a second?
         // So if i want the max speed to be 2units/s then i need to cap the speed that is incremented 
-        // In the game engine to 2/60.
+        // In the game engine to 2/60.  
         applied_force_ver = true;
     }
 
     if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS) {
-        player->SetPosition(curpos - motion_increment * dir);
+        //player->SetPosition(curpos - motion_increment * dir);
         VerVelocity = -0.002;
         applied_force_ver = true;
     }
     if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS) {
         if (fireRate.Finished()) {
-            bullets_.push_back(new Bullet(player->GetPosition(), sprite_, &sprite_shader_, tex_[5]));
+            bullets_.push_back(new Bullet(playerContainer->GetPosition(), sprite_, &sprite_shader_, tex_[5]));
             //bullets_[bullets_.size() - 1]->SetRotation(player->GetRotation());
             bullets_[bullets_.size() - 1]->SetRotation(player->GetRotation() - glm::pi<float>() / 2.0f);
             fireRate.Start(1);
             bullettrails_.push_back(new ParticleSystem(glm::vec3(0.0f, 0.0f, 0.0f), bullettrail_, &particle_shader_, tex_[4], bullets_[bullets_.size() - 1]));
             bullettrails_[bullettrails_.size() - 1]->SetScale(0.1f);
-
+            globalVel += (-1.0f * player->GetBearing() * recoilForce);
         }
 
     }
@@ -504,6 +505,9 @@ void Game::Render(void) {
     float camera_zoom = 0.25f;
     glm::mat4 camera_zoom_matrix = glm::scale(glm::mat4(1.0f), glm::vec3(camera_zoom, camera_zoom, camera_zoom));
     glm::mat4 view_matrix = window_scale_matrix * camera_zoom_matrix;
+    if (game_objects_.size() > 0) {
+        view_matrix = glm::translate(view_matrix, -1.0f * (playerContainer->GetPosition()));
+    }
 
     blade->Render(view_matrix, current_time_);
 
