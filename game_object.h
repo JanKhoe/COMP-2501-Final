@@ -10,7 +10,7 @@
 #include "Timer.h"
 
 namespace game {
-
+    enum GameObjType { ENEMY, COLLECTIBLE, EXPLOSION };
     /*
         GameObject is responsible for handling the rendering and updating of one object in the game world
         The update and render methods are virtual, so you can inherit them from GameObject and override the update or render functionality (see PlayerGameObject for reference)
@@ -48,8 +48,10 @@ namespace game {
             inline void SetScale(float scale) { scale_ = scale; }
             inline void SetParent(GameObject* p) { parent_ = p; }
             void SetRotation(float angle);
+            inline void SetTexture(GLuint tex) { texture_ = tex; }
 
             Timer lifespan;
+            GameObjType type;
 
 
         protected:

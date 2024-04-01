@@ -19,6 +19,8 @@ namespace game {
 
             void Render(glm::mat4 view_matrix, double current_time) override;
 
+            int health;
+
     }; // class PlayerGameObject
 
 } // namespace game
