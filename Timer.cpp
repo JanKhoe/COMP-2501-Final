@@ -9,6 +9,7 @@ namespace game {
 
     Timer::Timer(void)
     {
+        finish_time = -1;
     }
 
     Timer::Timer(float end_time) {
@@ -33,7 +34,7 @@ namespace game {
     {
 
 
-        if (glfwGetTime() > finish_time) {
+        if (glfwGetTime() > finish_time && finish_time != -1) {
             return true;
         }
         return false;

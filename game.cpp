@@ -146,14 +146,19 @@ void Game::Setup(void)
     // Setup other objects
     game_objects_.push_back(new GameObject(glm::vec3(1.0f, 0.0f, 0.0f), sprite_, &sprite_shader_, tex_[1]));
     game_objects_[1]->SetRotation(pi_over_two);
+    game_objects_[1]->type = ENEMY;
     game_objects_.push_back(new GameObject(glm::vec3(1.05f, 0.0f, 0.0f), sprite_, &sprite_shader_, tex_[2]));
     game_objects_[2]->SetRotation(pi_over_two);
+    game_objects_[2]->type = ENEMY;
     game_objects_.push_back(new GameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[2]));
     game_objects_[3]->SetRotation(pi_over_two);
+    game_objects_[3]->type = game::ENEMY;
     game_objects_.push_back(new GameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[2]));
     game_objects_[4]->SetRotation(pi_over_two);
+    game_objects_[4]->type = game::ENEMY;
     game_objects_.push_back(new GameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[2]));
     game_objects_[5]->SetRotation(pi_over_two);
+    game_objects_[5]->type = game::ENEMY;
 
     blade = new Blade(glm::vec3(0, 0, 0.0f), sprite_, &sprite_shader_, tex_[6], game_objects_[0]);
     //game_objects_.push_back(new GameObject(glm::vec3(rand()%5, rand()%5, 0.0f), sprite_, &sprite_shader_, tex_[2]));
@@ -215,7 +220,7 @@ void Game::SetAllTextures(void)
 {
     // Load all textures that we will need
     // Declare all the textures here
-    const char *texture[] = {"/textures/destroyer_red.png", "/textures/destroyer_green.png", "/textures/destroyer_blue.png", "/textures/stars2.png", "/textures/orb.png", "/textures/bullet.png", "/textures/blade.png", "/textures/Empty.png"};
+    const char *texture[] = {"/textures/destroyer_red.png", "/textures/destroyer_green.png", "/textures/destroyer_blue.png", "/textures/stars2.png", "/textures/orb.png", "/textures/bullet.png", "/textures/blade.png", "/textures/Empty.png", "/textures/explosion.png"};
     // Get number of declared textures
     int num_textures = sizeof(texture) / sizeof(char *);
     // Allocate a buffer for all texture references
@@ -372,7 +377,8 @@ void Game::Update(double delta_time)
     current_time_ += delta_time;
 
 
-    blade->Update(delta_time);
+    
+    
     // Update all game objects
     for (int i = 0; i < game_objects_.size(); i++) {
         // Get the current game object
@@ -380,19 +386,55 @@ void Game::Update(double delta_time)
 
         // Update the current game object
         current_game_object->Update(delta_time);
+        if (current_game_object->lifespan.Finished()) {
+            
+            
+            if (i == 0) {
+                
+                std::cout << "Game Over" << std::endl;
+                blade->SetParent(nullptr);
+                glfwSetWindowShouldClose(window_, true);
+                return;
+            }
+            delete current_game_object;
+            game_objects_.erase(game_objects_.begin() + i);
+            i--;
+            
+        }
+
+        blade->Update(delta_time);
 
         // Check for collision with other game objects
         // Note the loop bounds: we avoid testing the last object since
         // it's the background covering the whole game world
-        for (int j = i + 1; j < (game_objects_.size()-1); j++) {
-            GameObject* other_game_object = game_objects_[j];
+        //for (int j = i + 1; j < (game_objects_.size()-1); j++) {
+        //    GameObject* other_game_object = game_objects_[j];
 
             // Compute distance between object i and object j
-            float distance = glm::length(current_game_object->GetPosition() - other_game_object->GetPosition());
+        //    float distance = glm::length(current_game_object->GetPosition() - other_game_object->GetPosition());
             // If distance is below a threshold, we have a collision
-            if (distance < 0.8f) {
+          //  if (distance < 0.8f) {
                 // This is where you would perform collision response between objects
+
+            //}
+        //}
+    }
+
+    for (int i = 1; i < game_objects_.size() - 1; i++) {
+        GameObject* other_game_object = game_objects_[i];
+        float distance = glm::length(playerContainer->GetPosition() - other_game_object->GetPosition());
+        if (distance < 0.8f) {
+            if (other_game_object->type == ENEMY) {
+                other_game_object->lifespan = Timer(5);
+                other_game_object->SetTexture(tex_[8]);
+                other_game_object->type = EXPLOSION;
+                if (--player->health <= 0) {
+                    canMove = false;
+                    player->SetTexture(tex_[8]);
+                    player->lifespan = Timer(5);
+                }
             }
+            
         }
     }
 
@@ -421,6 +463,9 @@ void Game::Update(double delta_time)
             int hitIndex = -1;
             float minTime = INFINITY;
             for (int i2 = 1; i2 < game_objects_.size()-2; i2++) {
+                if (game_objects_[i2]->type != ENEMY) {
+                    return;
+                }
                 glm::vec3 directionVector = (-bullets_[i]->GetRight() * bullets_[i]->speed * (float)delta_time);
                 float A = glm::dot(directionVector, directionVector);
                 float B = glm::dot(2.0f * directionVector, (bullets_[i]->GetPosition() - game_objects_[i2]->GetPosition()));
@@ -481,7 +526,9 @@ void Game::Update(double delta_time)
 
 
 void Game::Render(void) {
-
+    if (player == nullptr) {
+        return;
+    }
     // Clear background
     glClearColor(viewport_background_color_g.r,
         viewport_background_color_g.g,
