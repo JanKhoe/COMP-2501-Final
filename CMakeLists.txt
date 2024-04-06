@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.18)
 
 # Name of project
-set(PROJ_NAME ParticleDemo)
+set(PROJ_NAME FinalProject)
 project(${PROJ_NAME})
 
 # Specify project files: header files and source files
@@ -18,6 +18,11 @@ set(HDRS
     Timer.h
     bullet.h
     blade.h
+
+    # Enemy:
+    enemy_game_object.h
+    # Collectible:
+    collectible_game_object.h
 )
  
 set(SRCS
@@ -33,6 +38,12 @@ set(SRCS
     Timer.cpp
     bullet.cpp
     blade.cpp
+
+    # Enemy:
+    enemy_game_object.cpp
+    # Collectible:
+    collectible_game_object.cpp
+
     sprite_vertex_shader.glsl
     sprite_fragment_shader.glsl
     particle_vertex_shader.glsl

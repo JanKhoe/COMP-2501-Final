@@ -29,11 +29,8 @@ namespace game {
         cout << finish_time << endl;
     }
 
-
     bool Timer::Finished(void) const
     {
-
-
         if (glfwGetTime() > finish_time && finish_time != -1) {
             return true;
         }
