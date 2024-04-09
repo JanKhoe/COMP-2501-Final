@@ -8,6 +8,8 @@ namespace game {
     // Inherits from GameObject
     class PlayerGameObject : public GameObject {
 
+        
+
         public:
 
             PlayerGameObject(const glm::vec3 &position, Geometry *geom, Shader *shader, GLuint texture);
@@ -18,13 +20,6 @@ namespace game {
             void Render(glm::mat4 view_matrix, double current_time) override;
 
             int health;
-
-            // Different Gun Firerate Timers
-            /*
-            Timer minigunTimer;
-            Timer shotgunTimer;
-            Timer rocketTimer;
-            */
 
     }; // class PlayerGameObject
 

@@ -19,6 +19,8 @@ namespace game {
         // Check if timer has finished
         bool Finished(void) const;
 
+
+
     private:
         float current_time;
         float finish_time;

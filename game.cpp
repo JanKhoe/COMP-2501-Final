@@ -11,8 +11,6 @@
 #include "particles.h"
 #include "shader.h"
 #include "player_game_object.h"
-#include "enemy_game_object.h"
-#include "collectible_game_object.h"
 #include "particle_system.h"
 #include "bullet.h"
 #include "game.h"
@@ -143,33 +141,39 @@ void Game::Setup(void)
     // Note that, in this specific implementation, the player object should always be the first object in the game object vector 
     game_objects_.push_back(new PlayerGameObject(glm::vec3(0.0f, 0.0f, 0.0f), sprite_, &sprite_shader_, tex_[0]));
     float pi_over_two = glm::pi<float>() / 2.0f;
+    game_objects_[0]->SetRotation(pi_over_two);
 
     // Setup other objects
-    // Test Enemy AI Object
-    EnemyGameObject *newEnemy = new EnemyGameObject(glm::vec3(1.0f, 0.0f, 0.0f), sprite_, &sprite_shader_, tex_[2]);
-    newEnemy->SetRotation(pi_over_two);
-    newEnemy->type = ENEMY;
-    newEnemy->SetTarget(playerContainer);
-    newEnemy->SetVelocity(glm::vec3(0.0, 0.5, 0.0));
-    game_objects_.push_back(newEnemy);
-
-    game_objects_.push_back(new GameObject(glm::vec3(1.05f, 0.0f, 0.0f), sprite_, &sprite_shader_, tex_[2]));
+    game_objects_.push_back(new GameObject(glm::vec3(1.0f, 0.0f, 0.0f), sprite_, &sprite_shader_, tex_[1]));
+    game_objects_[1]->SetRotation(pi_over_two);
+    game_objects_[1]->type = ENEMY;
+    game_objects_.push_back(new GameObject(glm::vec3(1.05f, 0.0f, 0.0f), sprite_, &sprite_shader_, tex_[1]));
     game_objects_[2]->SetRotation(pi_over_two);
     game_objects_[2]->type = ENEMY;
-    game_objects_.push_back(new GameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[2]));
+    game_objects_.push_back(new GameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[1]));
     game_objects_[3]->SetRotation(pi_over_two);
     game_objects_[3]->type = game::ENEMY;
-    game_objects_.push_back(new GameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[2]));
+    game_objects_.push_back(new GameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[1]));
     game_objects_[4]->SetRotation(pi_over_two);
     game_objects_[4]->type = game::ENEMY;
-    game_objects_.push_back(new GameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[2]));
+    game_objects_.push_back(new GameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[1]));
     game_objects_[5]->SetRotation(pi_over_two);
     game_objects_[5]->type = game::ENEMY;
 
-    // Setup Collectibles
-    game_objects_.push_back(new CollectibleGameObject(glm::vec3(-2.0f, -1.0f, 0.0f), sprite_, &sprite_shader_, tex_[9]));
-    //game_objects_[5]->type = game::COLLECTIBLE; < Does it already in the constructor
+    //Setup Enemy AI
+    //Patrol_Chase_EnemyGameObject* patrol = new Patrol_Chase_EnemyGameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[1]);
+    //patrol->SetTarget(playerContainer);
+    
+    //game_objects_.push_back(patrol);
+    //game_objects_[6]->SetRotation(pi_over_two);
+    //game_objects_[6]->type = game::ENEMY;
 
+    Charge_EnemyGameObject* charge = new Charge_EnemyGameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[2]);
+    charge->SetTarget(playerContainer);
+    
+    game_objects_.push_back(charge);
+    game_objects_[6]->SetRotation(pi_over_two);
+    game_objects_[6]->type = game::ENEMY;
     blade = new Blade(glm::vec3(0, 0, 0.0f), sprite_, &sprite_shader_, tex_[6], game_objects_[0]);
     //game_objects_.push_back(new GameObject(glm::vec3(rand()%5, rand()%5, 0.0f), sprite_, &sprite_shader_, tex_[2]));
     //game_objects_[3]->SetRotation(pi_over_two);
@@ -230,7 +234,7 @@ void Game::SetAllTextures(void)
 {
     // Load all textures that we will need
     // Declare all the textures here
-    const char *texture[] = {"/textures/playerPlane.png", "/textures/destroyer_green.png", "/textures/spiker.png", "/textures/stars2.png", "/textures/orb.png", "/textures/bullet.png", "/textures/blade.png", "/textures/Empty.png", "/textures/explosion.png", "/textures/orange_soda.png"};
+    const char *texture[] = {"/textures/playerPlane.png", "/textures/spiker.png", "/textures/destroyer_blue.png", "/textures/stars2.png", "/textures/orb.png", "/textures/bullet.png", "/textures/blade.png", "/textures/Empty.png", "/textures/explosion.png"};
     // Get number of declared textures
     int num_textures = sizeof(texture) / sizeof(char *);
     // Allocate a buffer for all texture references
@@ -320,7 +324,7 @@ void Game::HandleControls(double delta_time)
         VerVelocity = -0.002;
         applied_force_ver = true;
     }
-    if (glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+    if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS) {
         if (fireRate.Finished()) {
             bullets_.push_back(new Bullet(playerContainer->GetPosition(), sprite_, &sprite_shader_, tex_[5]));
             //bullets_[bullets_.size() - 1]->SetRotation(player->GetRotation());
@@ -376,7 +380,7 @@ void Game::HandleControls(double delta_time)
     
     //player->SetPosition(curpos + (HorMovement + VerMovement));
     playerContainer->SetPosition(curpos + (globalVel));
-    std::cout << playerContainer->GetPosition().x << playerContainer->GetPosition().y << std::endl;
+    //std::cout << playerContainer->GetPosition().x << playerContainer->GetPosition().y << std::endl;
 }
 
 
@@ -435,6 +439,7 @@ void Game::Update(double delta_time)
         float distance = glm::length(playerContainer->GetPosition() - other_game_object->GetPosition());
         if (distance < 0.8f) {
             if (other_game_object->type == ENEMY) {
+                std::cout << "you got hit!" << std::endl;
                 other_game_object->lifespan = Timer(5);
                 other_game_object->SetTexture(tex_[8]);
                 other_game_object->type = EXPLOSION;

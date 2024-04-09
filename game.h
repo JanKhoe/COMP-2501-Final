@@ -12,6 +12,9 @@
 #include "particle_system.h"
 #include "particles.h"
 #include "player_game_object.h"
+#include "enemy_game_object.h"
+#include "patrol_chase_enemy_game_object.h"
+#include "charge_enemy_game_object.h"
 
 namespace game {
 
