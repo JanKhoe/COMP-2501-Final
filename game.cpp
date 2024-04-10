@@ -96,12 +96,17 @@ void Game::Init(void)
 
     // Initialize time
     current_time_ = 0.0;
-    accel = 0.0005f;
-    friction = 0.0025f;
+    accel = 0.00001f;
+    friction = 0.001f;
     HorVelocity = 0.0f;
     VerVelocity = 0.0f;
     canMove = true;
-    recoilForce = 0.005f;
+    recoilForce = 0.001f;
+
+    Score = 0;
+
+    EnemySpawnTimer = Timer(2);
+    SodaSpawnTimer = Timer(3);
 
     globalVel = glm::vec3(0.0f, 0.0f, 0.0f);
 }
@@ -144,39 +149,41 @@ void Game::Setup(void)
     game_objects_[0]->SetRotation(pi_over_two);
 
     // Setup other objects
-    game_objects_.push_back(new GameObject(glm::vec3(1.0f, 0.0f, 0.0f), sprite_, &sprite_shader_, tex_[1]));
+    game_objects_.push_back(new EnemyGameObject(glm::vec3(1.0f, 0.0f, 0.0f), sprite_, &sprite_shader_, tex_[1]));
     game_objects_[1]->SetRotation(pi_over_two);
-    game_objects_[1]->type = ENEMY;
-    game_objects_.push_back(new GameObject(glm::vec3(1.05f, 0.0f, 0.0f), sprite_, &sprite_shader_, tex_[1]));
+    //game_objects_[1]->type = ENEMY;
+    game_objects_.push_back(new EnemyGameObject(glm::vec3(1.05f, 0.0f, 0.0f), sprite_, &sprite_shader_, tex_[1]));
     game_objects_[2]->SetRotation(pi_over_two);
-    game_objects_[2]->type = ENEMY;
-    game_objects_.push_back(new GameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[1]));
+    //game_objects_[2]->type = ENEMY;
+    game_objects_.push_back(new EnemyGameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[1]));
     game_objects_[3]->SetRotation(pi_over_two);
-    game_objects_[3]->type = game::ENEMY;
-    game_objects_.push_back(new GameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[1]));
+    //game_objects_[3]->type = game::ENEMY;
+    game_objects_.push_back(new EnemyGameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[1]));
     game_objects_[4]->SetRotation(pi_over_two);
-    game_objects_[4]->type = game::ENEMY;
-    game_objects_.push_back(new GameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[1]));
+    //game_objects_[4]->type = game::ENEMY;
+    game_objects_.push_back(new EnemyGameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[1]));
     game_objects_[5]->SetRotation(pi_over_two);
-    game_objects_[5]->type = game::ENEMY;
+    //game_objects_[5]->type = game::ENEMY;
 
     //Setup Enemy AI
-    //Patrol_Chase_EnemyGameObject* patrol = new Patrol_Chase_EnemyGameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[1]);
-    //patrol->SetTarget(playerContainer);
+    Patrol_Chase_EnemyGameObject* patrol = new Patrol_Chase_EnemyGameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[1]);
+    patrol->SetTarget(playerContainer);
     
-    //game_objects_.push_back(patrol);
-    //game_objects_[6]->SetRotation(pi_over_two);
-    //game_objects_[6]->type = game::ENEMY;
+    game_objects_.push_back(patrol);
+    game_objects_[6]->SetRotation(pi_over_two);
+    game_objects_[6]->type = game::ENEMY;
 
     Charge_EnemyGameObject* charge = new Charge_EnemyGameObject(glm::vec3(rand() % 5, rand() % 5, 0.0f), sprite_, &sprite_shader_, tex_[2]);
     charge->SetTarget(playerContainer);
     
     game_objects_.push_back(charge);
-    game_objects_[6]->SetRotation(pi_over_two);
-    game_objects_[6]->type = game::ENEMY;
+    game_objects_[7]->SetRotation(pi_over_two);
+    game_objects_[7]->type = game::ENEMY;
     blade = new Blade(glm::vec3(0, 0, 0.0f), sprite_, &sprite_shader_, tex_[6], game_objects_[0]);
     //game_objects_.push_back(new GameObject(glm::vec3(rand()%5, rand()%5, 0.0f), sprite_, &sprite_shader_, tex_[2]));
     //game_objects_[3]->SetRotation(pi_over_two);
+
+    game_objects_.push_back(new CollectibleGameObject(glm::vec3(-3, 1, 0), sprite_, &sprite_shader_, tex_[9]));
 
     // Setup background
     // In this specific implementation, the background is always the
@@ -234,7 +241,7 @@ void Game::SetAllTextures(void)
 {
     // Load all textures that we will need
     // Declare all the textures here
-    const char *texture[] = {"/textures/playerPlane.png", "/textures/spiker.png", "/textures/destroyer_blue.png", "/textures/stars2.png", "/textures/orb.png", "/textures/bullet.png", "/textures/blade.png", "/textures/Empty.png", "/textures/explosion.png"};
+    const char *texture[] = {"/textures/playerPlane.png", "/textures/spiker.png", "/textures/destroyer_blue.png", "/textures/stars2.png", "/textures/orb.png", "/textures/bullet.png", "/textures/blade.png", "/textures/Empty.png", "/textures/explosion.png", "/textures/orange_soda.png"};
     // Get number of declared textures
     int num_textures = sizeof(texture) / sizeof(char *);
     // Allocate a buffer for all texture references
@@ -312,7 +319,7 @@ void Game::HandleControls(double delta_time)
     // Check for player input and make changes accordingly
     if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS) {
         //player->SetPosition(curpos + motion_increment*dir);
-        VerVelocity = 0.002;
+        VerVelocity = 0.0002;
         //Since a game runs in approximately 60fps that means there are 60 update calls in a second?
         // So if i want the max speed to be 2units/s then i need to cap the speed that is incremented 
         // In the game engine to 2/60.  
@@ -321,7 +328,7 @@ void Game::HandleControls(double delta_time)
 
     if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS) {
         //player->SetPosition(curpos - motion_increment * dir);
-        VerVelocity = -0.002;
+        VerVelocity = -0.0004;
         applied_force_ver = true;
     }
     if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS) {
@@ -390,6 +397,41 @@ void Game::Update(double delta_time)
     // Update time
     current_time_ += delta_time;
 
+    
+    int EnemyTypes = 2;
+    if (EnemySpawnTimer.Finished()) {
+        if (!canMove) {
+            EnemySpawnTimer = Timer();
+            return;
+        }
+        int EnemyToSpawn = rand() % EnemyTypes;
+        if (EnemyToSpawn == 0) {
+            Charge_EnemyGameObject* charge = new Charge_EnemyGameObject(glm::vec3((rand() % 5) + playerContainer->GetPosition().x, (rand() % 5) + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[1]);
+            charge->SetTarget(playerContainer);
+            game_objects_.insert(game_objects_.begin() + game_objects_.size()-2, charge);
+            
+
+        }
+        else if (EnemyToSpawn == 1) {
+            Patrol_Chase_EnemyGameObject* patrol = new Patrol_Chase_EnemyGameObject(glm::vec3((rand() % 5) + playerContainer->GetPosition().x, (rand() % 5) + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[1]);
+            patrol->SetTarget(playerContainer);
+            game_objects_.insert(game_objects_.begin() + game_objects_.size()-2, patrol);
+        }
+        EnemySpawnTimer.Start(2);
+    }
+    
+
+    if (SodaSpawnTimer.Finished()) {
+        if (!canMove) {
+            return;
+        }
+        game_objects_.insert(game_objects_.begin() + 1, new CollectibleGameObject(glm::vec3((rand() % 5) + playerContainer->GetPosition().x, (rand() % 5) + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[9]));
+        SodaSpawnTimer.Start(3);
+    }
+
+
+    
+
 
     
     
@@ -443,11 +485,18 @@ void Game::Update(double delta_time)
                 other_game_object->lifespan = Timer(5);
                 other_game_object->SetTexture(tex_[8]);
                 other_game_object->type = EXPLOSION;
+                EnemyGameObject* curEnemy = dynamic_cast<EnemyGameObject*>(other_game_object);
+                curEnemy->die();
                 if (--player->health <= 0) {
                     canMove = false;
                     player->SetTexture(tex_[8]);
                     player->lifespan = Timer(5);
                 }
+            }
+            if (other_game_object->type == COLLECTIBLE) {
+                Score++;
+                delete other_game_object;
+                game_objects_.erase(game_objects_.begin() + i);
             }
             
         }
@@ -479,7 +528,7 @@ void Game::Update(double delta_time)
             float minTime = INFINITY;
             for (int i2 = 1; i2 < game_objects_.size()-2; i2++) {
                 if (game_objects_[i2]->type != ENEMY) {
-                    return;
+                    continue;
                 }
                 glm::vec3 directionVector = (-bullets_[i]->GetRight() * bullets_[i]->speed * (float)delta_time);
                 float A = glm::dot(directionVector, directionVector);
@@ -527,6 +576,7 @@ void Game::Update(double delta_time)
 
                 delete bullets_[i];
                 bullets_.erase(bullets_.begin() + i);
+                dynamic_cast<EnemyGameObject*>(game_objects_[hitIndex])->die();
                 delete game_objects_[hitIndex];
                 game_objects_.erase(game_objects_.begin() + hitIndex);
                 delete bullettrails_[i];

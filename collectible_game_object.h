@@ -10,16 +10,16 @@ namespace game {
     // Inherits from GameObject
     class CollectibleGameObject : public GameObject {
 
-        public:
-            CollectibleGameObject(const glm::vec3 &position, Geometry *geom, Shader *shader, GLuint texture);
+    public:
+        CollectibleGameObject(const glm::vec3& position, Geometry* geom, Shader* shader, GLuint texture);
 
-            // Getter
-            inline collectType GetCollectType() const { return collectType; }
-            // Setter
-            inline void SetCollectType(collectType type) { collectType = type; }
+        // Getter
+        inline collectType GetCollectType() const { return collectType; }
+        // Setter
+        inline void SetCollectType(collectType type) { collectType = type; }
 
-        private:
-            collectType collectType;
+    private:
+        collectType collectType;
 
     }; // class CollectibleGameObject
 

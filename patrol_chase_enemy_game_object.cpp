@@ -1,20 +1,25 @@
 #include "patrol_chase_enemy_game_object.h"
 
+#include <glm/gtc/matrix_transform.hpp> 
+
+#include <iostream>
+using namespace std;
+
 namespace game {
 
 
 	Patrol_Chase_EnemyGameObject::Patrol_Chase_EnemyGameObject(const glm::vec3& position, Geometry* geom, Shader* shader, GLuint texture)
 		: EnemyGameObject(position, geom, shader, texture) {
-		target_ = nullptr;
+		//target_ = nullptr;
 		current_time_ = 0.0;
 		wander_cool_down_ = 0.0;
 		type = ENEMY;
 
 		//TODO: change later and set default to patrolling
-		state_ = CHASE;
+		state_ = PATROL;
 
 		// Set initial velocity
-		velocity_ = glm::vec3(0.0f, 0.0f, 0.0f);
+		velocity_ = glm::vec3(0.0f, 0.5f, 0.0f);
 	}
 
 	float map(float input, float a, float b, float c, float d) {
@@ -23,12 +28,23 @@ namespace game {
 
 	void Patrol_Chase_EnemyGameObject::Update(double delta_time) {
 
-		switch (state_) {
-		case PATROL:
+		// Increment timer
+		current_time_ += delta_time;
+
+		// Set orientation based on current velocity vector
+		angle_ = glm::atan(velocity_.y, velocity_.x);
+
+		if (!canMove) return;
+		
+		if (state_ == PATROL) {
+			
 			PatrolInput(delta_time);
-		case CHASE:
+		}
+		else if (state_ == CHASE) {
 			ChaseInput(delta_time);
 		}
+
+		
 		
 
 		// Call the parent's update method to move the object in standard way, if desired
@@ -37,26 +53,17 @@ namespace game {
 
 
 	void  Patrol_Chase_EnemyGameObject::PatrolInput(double delta_time) {
-		
-	}
-
-	void Patrol_Chase_EnemyGameObject::ChaseInput(double delta_time) {
-		// Increment timer
-		current_time_ += delta_time;
-
-		// Set orientation based on current velocity vector
-		angle_ = glm::atan(velocity_.y, velocity_.x);
-
 		// Wandering behavior
-		/*
+		
 		double activation_time = 5.0;
-		if (current_time_ < activation_time){
+		//cout << current_time_ << "||" << wander_cool_down_ << endl;
+		
 			if (current_time_ > wander_cool_down_){
 
 				// Get a random angle in the interval [-opening, opening]
-				float opening = glm::pi<float>() / 10.0; // Radians
+				float opening = glm::pi<float>(); // Radians
 				float r = (float)std::rand() / (float)RAND_MAX;
-				float r_angle = -opening + r * opening * 2.0;
+				float r_angle = ( - opening + r * opening * 2.0) ;
 
 				// Add random angle to current orientation,
 				// to align the opening with the bearing direction
@@ -84,10 +91,21 @@ namespace game {
 				angle_ = glm::atan(velocity_.y, velocity_.x);
 
 				// Update only after cool down interval
-				wander_cool_down_ = current_time_ + 0.25;
+				wander_cool_down_ = current_time_ + 1.25;
+				//cout <<  glm::length(target_->GetPosition() - position_) << velocity_.x << velocity_.y << endl;
 			}
-		} else {
-		*/
+
+			position_ = position_ + velocity_ * (float)delta_time * (1.0f/2);
+
+			if (glm::length(target_->GetPosition() - position_) < 4) {
+				state_ = CHASE;
+			}
+		
+	}
+
+	void Patrol_Chase_EnemyGameObject::ChaseInput(double delta_time) {
+		
+		
 		// Chase steering behavior
 
 		// Compute steering force (acceleration)
@@ -113,6 +131,11 @@ namespace game {
 
 		// Default Movement
 		position_ += velocity_ * ((float)delta_time);
+		
+		
+		if (glm::length(target_->GetPosition() - position_) > 4	) {
+			state_ = PATROL;
+		}
 	}
 }
 

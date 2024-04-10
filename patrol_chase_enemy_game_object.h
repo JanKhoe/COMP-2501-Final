@@ -15,16 +15,13 @@ namespace game {
         // Update function for moving the player object around
         void Update(double delta_time) override;
 
-        // Update target
-        GameObject* GetTarget(void) { return target_; }
-        void SetTarget(GameObject* t) { target_ = t; }
 
         // New Velocity Variable
         inline glm::vec3 GetVelocity(void) const { return velocity_; }
         inline void SetVelocity(glm::vec3 v) { velocity_ = v; }
 
     protected:
-        GameObject* target_;
+        //GameObject* target_;
         double wander_cool_down_;
         double current_time_;
         glm::vec3 velocity_;

@@ -12,6 +12,7 @@
 #include "particle_system.h"
 #include "particles.h"
 #include "player_game_object.h"
+#include "collectible_game_object.h"
 #include "enemy_game_object.h"
 #include "patrol_chase_enemy_game_object.h"
 #include "charge_enemy_game_object.h"
@@ -85,6 +86,10 @@ namespace game {
             bool applied_force_hor;
             bool applied_force_ver;
             bool canMove;
+            int Score;
+
+            Timer EnemySpawnTimer;
+            Timer SodaSpawnTimer;
 
             glm::vec3 globalVel;
 

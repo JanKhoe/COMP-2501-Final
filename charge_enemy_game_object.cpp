@@ -8,10 +8,10 @@ namespace game {
 	Charge_EnemyGameObject::Charge_EnemyGameObject(const glm::vec3& position, Geometry* geom, Shader* shader, GLuint texture) :
 		EnemyGameObject(position, geom, shader, texture) {
 		state = PATROL;
-		target_ = nullptr;
+		//target_ = nullptr;
 		velocity_ = glm::vec3(0, 0, 0);
 		orbitPos = position;
-		orbitRadius = 2.0f;
+		orbitRadius = 1.0f;
 		seekRadius = 2;
 		charge_up_speed = 1;
 		launch_speed = 10.0f;
@@ -28,6 +28,8 @@ namespace game {
 	void Charge_EnemyGameObject::Update(double delta_time) {
 		current_time += delta_time;
 		angle_ = glm::atan(velocity_.y, velocity_.x);
+
+		if (!canMove) return;
 
 
 		//position_ = glm::vec3(1, 2, 0);
@@ -97,17 +99,18 @@ namespace game {
 	}
 
 	void Charge_EnemyGameObject::LaunchInput(double delta_time) {
-		glm::vec3 desired = (targetPos - startingPos) + glm::normalize(targetPos - startingPos)/2.0f;
+		//glm::vec3 desired = (targetPos - startingPos) + glm::normalize(targetPos - startingPos);
+		glm::vec3 desired = (glm::length(targetPos - startingPos) + 1) * glm::normalize(targetPos - startingPos);
 		//float progress = glm::length((position_ - startingPos) - (desired - startingPos));
 		float progress = (glm::length(position_ - startingPos) / glm::length(desired - startingPos)) + 0.1f;
 		//cout << progress << endl;
 		if (abs(progress) > 0.99f) {
 			state = PATROL;
-			orbitPos = glm::vec3(position_.x - orbitRadius, position_.y + orbitRadius, 0);
+			orbitPos = glm::vec3(position_.x - orbitRadius, position_.y, 0);
 			current_time = 0;
 			cout << "Finished Launch" << endl;
 		}
-		position_ += glm::normalize(desired - startingPos) * launch_speed * map(progress) * (float)delta_time;
+		position_ += glm::normalize(desired - startingPos) * (launch_speed * map(progress) * (float)delta_time);
 	}
 
 

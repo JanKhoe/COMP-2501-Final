@@ -14,8 +14,7 @@ namespace game {
 		void Update(double delta_time) override;
 
 		// Update target
-		GameObject* GetTarget(void) { return target_; }
-		void SetTarget(GameObject* t) { target_ = t; }
+		
 
 		// New Velocity Variable
 		inline glm::vec3 GetVelocity(void) const { return velocity_; }
@@ -37,7 +36,7 @@ namespace game {
 		float launch_speed;
 
 		double current_time;
-		GameObject* target_;
+		//GameObject* target_;
 
 		void PatrolInput(double);
 		void ReadyInput(double);
