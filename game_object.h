@@ -10,7 +10,7 @@
 #include "Timer.h"
 
 namespace game {
-    enum GameObjType { ENEMY, COLLECTIBLE, EXPLOSION };
+    enum GameObjType { ENEMY, COLLECTIBLE, EXPLOSION, TEXT };
     /*
         GameObject is responsible for handling the rendering and updating of one object in the game world
         The update and render methods are virtual, so you can inherit them from GameObject and override the update or render functionality (see PlayerGameObject for reference)

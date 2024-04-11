@@ -21,6 +21,14 @@ namespace game {
 
             int health;
 
+            void SuperActive();
+
+            bool isSuperActive;
+        protected:
+            Timer SuperTime;
+            
+            
+
     }; // class PlayerGameObject
 
 } // namespace game

@@ -5,6 +5,7 @@ namespace game {
 	CollectibleGameObject::CollectibleGameObject(const glm::vec3& position, Geometry* geom, Shader* shader, GLuint texture)
 		: GameObject(position, geom, shader, texture) {
 		type = COLLECTIBLE;
+		collectType = ORANGESODA;
 	}
 
 

@@ -94,6 +94,9 @@ void Game::Init(void)
     // Initialize sprite shader
     sprite_shader_.Init((resources_directory_g+std::string("/sprite_vertex_shader.glsl")).c_str(), (resources_directory_g+std::string("/sprite_fragment_shader.glsl")).c_str());
 
+    // Initialize text shader
+    text_shader_.Init((resources_directory_g + std::string("/sprite_vertex_shader.glsl")).c_str(), (resources_directory_g + std::string("/text_fragment_shader.glsl")).c_str());
+    
     // Initialize time
     current_time_ = 0.0;
     accel = 0.00001f;
@@ -185,6 +188,14 @@ void Game::Setup(void)
 
     game_objects_.push_back(new CollectibleGameObject(glm::vec3(-3, 1, 0), sprite_, &sprite_shader_, tex_[9]));
 
+
+    scoreCounter = new TextGameObject(glm::vec3(4.0f, 3.5f, 0.0f), sprite_, &text_shader_, tex_[10]);
+    scoreCounter->SetText("Score: 0");
+    scoreCounter->SetScalex(1.5);
+    scoreCounter->SetScaley(0.5);
+    game_objects_.push_back(scoreCounter);
+
+
     // Setup background
     // In this specific implementation, the background is always the
     // last object
@@ -241,7 +252,7 @@ void Game::SetAllTextures(void)
 {
     // Load all textures that we will need
     // Declare all the textures here
-    const char *texture[] = {"/textures/playerPlane.png", "/textures/spiker.png", "/textures/destroyer_blue.png", "/textures/stars2.png", "/textures/orb.png", "/textures/bullet.png", "/textures/blade.png", "/textures/Empty.png", "/textures/explosion.png", "/textures/orange_soda.png"};
+    const char *texture[] = {"/textures/playerPlane.png", "/textures/spiker.png", "/textures/destroyer_blue.png", "/textures/stars2.png", "/textures/orb.png", "/textures/bullet.png", "/textures/blade.png", "/textures/Empty.png", "/textures/explosion.png", "/textures/orange_soda.png", "/textures/font.png"};
     // Get number of declared textures
     int num_textures = sizeof(texture) / sizeof(char *);
     // Allocate a buffer for all texture references
@@ -332,11 +343,19 @@ void Game::HandleControls(double delta_time)
         applied_force_ver = true;
     }
     if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS) {
+
+        //if (!player->isSuperActive) {
+            recoilForce = 0.001f;
+        //}
         if (fireRate.Finished()) {
             bullets_.push_back(new Bullet(playerContainer->GetPosition(), sprite_, &sprite_shader_, tex_[5]));
             //bullets_[bullets_.size() - 1]->SetRotation(player->GetRotation());
             bullets_[bullets_.size() - 1]->SetRotation(player->GetRotation() - glm::pi<float>() / 2.0f);
             fireRate.Start(1);
+            if (player->isSuperActive) {
+                fireRate.Start(0.1);
+            }
+            
             bullettrails_.push_back(new ParticleSystem(glm::vec3(0.0f, 0.0f, 0.0f), bullettrail_, &particle_shader_, tex_[4], bullets_[bullets_.size() - 1]));
             bullettrails_[bullettrails_.size() - 1]->SetScale(0.1f);
             globalVel += (-1.0f * player->GetBearing() * recoilForce);
@@ -386,6 +405,11 @@ void Game::HandleControls(double delta_time)
     
     
     //player->SetPosition(curpos + (HorMovement + VerMovement));
+    //std::cout << globalVel.x << " || " << globalVel.y << std::endl;
+    if (glm::length(globalVel) > 0.003) {
+        //std::cout << "capping velocity" << std::endl;
+        globalVel = glm::normalize(globalVel) * 0.003f;
+    }
     playerContainer->SetPosition(curpos + (globalVel));
     //std::cout << playerContainer->GetPosition().x << playerContainer->GetPosition().y << std::endl;
 }
@@ -405,15 +429,26 @@ void Game::Update(double delta_time)
             return;
         }
         int EnemyToSpawn = rand() % EnemyTypes;
+        int xPos = rand() % 10;
+        while (xPos == 0)
+        {
+            xPos = rand() % 10;
+        }
+
+        int yPos = rand() % 10;
+        while (yPos == 0) {
+            yPos = rand() % 10;
+        }
         if (EnemyToSpawn == 0) {
-            Charge_EnemyGameObject* charge = new Charge_EnemyGameObject(glm::vec3((rand() % 5) + playerContainer->GetPosition().x, (rand() % 5) + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[1]);
+            
+            Charge_EnemyGameObject* charge = new Charge_EnemyGameObject( glm::vec3(xPos-5+playerContainer->GetPosition().x, yPos-5 + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[1]);
             charge->SetTarget(playerContainer);
             game_objects_.insert(game_objects_.begin() + game_objects_.size()-2, charge);
             
 
         }
         else if (EnemyToSpawn == 1) {
-            Patrol_Chase_EnemyGameObject* patrol = new Patrol_Chase_EnemyGameObject(glm::vec3((rand() % 5) + playerContainer->GetPosition().x, (rand() % 5) + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[1]);
+            Patrol_Chase_EnemyGameObject* patrol = new Patrol_Chase_EnemyGameObject(glm::vec3(xPos-5 + playerContainer->GetPosition().x, yPos-5 + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[1]);
             patrol->SetTarget(playerContainer);
             game_objects_.insert(game_objects_.begin() + game_objects_.size()-2, patrol);
         }
@@ -425,9 +460,21 @@ void Game::Update(double delta_time)
         if (!canMove) {
             return;
         }
-        game_objects_.insert(game_objects_.begin() + 1, new CollectibleGameObject(glm::vec3((rand() % 5) + playerContainer->GetPosition().x, (rand() % 5) + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[9]));
+        int numItems = 2;
+        int randItem = rand() % numItems;
+        if (randItem == 0) {
+            game_objects_.insert(game_objects_.begin() + 1, new CollectibleGameObject(glm::vec3((rand() % 5) + playerContainer->GetPosition().x, (rand() % 5) + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[9]));
+            
+        }
+        else if (randItem == 1) {
+            game_objects_.insert(game_objects_.begin() + 1, new SuperCollectibleGameObject(glm::vec3((rand() % 5) + playerContainer->GetPosition().x, (rand() % 5) + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[4]));
+
+        }
         SodaSpawnTimer.Start(3);
+
+        
     }
+
 
 
     
@@ -494,9 +541,19 @@ void Game::Update(double delta_time)
                 }
             }
             if (other_game_object->type == COLLECTIBLE) {
-                Score++;
+                CollectibleGameObject* curCollectible = dynamic_cast<CollectibleGameObject*>(other_game_object);
+                if (curCollectible->GetCollectType() == ORANGESODA) {
+                    Score++;
+                    scoreCounter->SetText("Score: " + std::to_string(Score));
+                }
+                else if (curCollectible->GetCollectType() == JUICERJUICE) {
+                    player->SuperActive();
+                    recoilForce = 0.0f;
+                }
+                
                 delete other_game_object;
                 game_objects_.erase(game_objects_.begin() + i);
+                
             }
             
         }
@@ -559,7 +616,7 @@ void Game::Update(double delta_time)
                             }
                         }
                     }
-                    std::cout << firstSol << " roots " << secondSol << " for " << i2 << std::endl;
+                    //std::cout << firstSol << " roots " << secondSol << " for " << i2 << std::endl;
 
                 }
             }
@@ -628,6 +685,13 @@ void Game::Render(void) {
     }
     // Render all game objects
     for (int i = 0; i < game_objects_.size(); i++) {
+        
+        if (game_objects_[i]->type == TEXT) {
+            glm::mat4 global_view_matrix = view_matrix;
+            global_view_matrix = glm::translate(global_view_matrix, (playerContainer->GetPosition()));
+            game_objects_[i]->Render(global_view_matrix, current_time_);
+            continue;
+        }
         game_objects_[i]->Render(view_matrix, current_time_);
     }
 

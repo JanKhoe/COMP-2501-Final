@@ -11,6 +11,8 @@ namespace game {
 PlayerGameObject::PlayerGameObject(const glm::vec3 &position, Geometry *geom, Shader *shader, GLuint texture)
     : GameObject(position, geom, shader, texture) {
     health = 3;
+    isSuperActive = false;
+    SuperTime = Timer();
 }
 
 // Update function for moving the player object around
@@ -18,8 +20,17 @@ void PlayerGameObject::Update(double delta_time) {
 
 	// Special player updates go here
 
+    if (SuperTime.Finished()) {
+        isSuperActive = false;
+    }
+
 	// Call the parent's update method to move the object in standard way, if desired
 	GameObject::Update(delta_time);
+}
+
+void PlayerGameObject::SuperActive() {
+    SuperTime.Start(3);
+    isSuperActive = true;
 }
 
 void PlayerGameObject::Render(glm::mat4 view_matrix, double current_time) {

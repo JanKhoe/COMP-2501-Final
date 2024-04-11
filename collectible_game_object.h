@@ -18,8 +18,10 @@ namespace game {
         // Setter
         inline void SetCollectType(collectType type) { collectType = type; }
 
-    private:
+
+    protected:
         collectType collectType;
+        
 
     }; // class CollectibleGameObject
 

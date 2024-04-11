@@ -13,9 +13,12 @@
 #include "particles.h"
 #include "player_game_object.h"
 #include "collectible_game_object.h"
+#include "super_collectible_game_object.h"
 #include "enemy_game_object.h"
 #include "patrol_chase_enemy_game_object.h"
 #include "charge_enemy_game_object.h"
+
+#include "text_game_object.h"
 
 namespace game {
 
@@ -56,12 +59,16 @@ namespace game {
             // Shader for rendering particles
             Shader particle_shader_;
 
+            Shader text_shader_;
+
             // References to textures
             // This needs to be a pointer
             GLuint *tex_;
 
             // List of game objects
             std::vector<GameObject*> game_objects_;
+
+            TextGameObject* scoreCounter;
 
             std::vector<Bullet*> bullets_;
             std::vector<ParticleSystem*> bullettrails_;

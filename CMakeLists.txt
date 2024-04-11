@@ -22,6 +22,7 @@ set(HDRS
     patrol_chase_enemy_game_object.h
     charge_enemy_game_object.h
     collectible_game_object.h
+    text_game_object.h
 )
  
 set(SRCS
@@ -41,10 +42,12 @@ set(SRCS
     patrol_chase_enemy_game_object.cpp
     charge_enemy_game_object.cpp
     collectible_game_object.cpp
+    text_game_object.cpp
     sprite_vertex_shader.glsl
     sprite_fragment_shader.glsl
     particle_vertex_shader.glsl
     particle_fragment_shader.glsl
+    text_fragment_shader.glsl
 )
 
 # Add path name to configuration file
