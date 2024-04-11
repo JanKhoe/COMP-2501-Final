@@ -14,7 +14,7 @@ namespace game {
 
     Timer::Timer(float end_time) {
         Start(end_time);
-        //cout << glfwGetTime() << endl;
+        cout << glfwGetTime() << endl;
     }
 
     Timer::~Timer(void)
@@ -24,9 +24,9 @@ namespace game {
     void Timer::Start(float end_time)
     {
         current_time = glfwGetTime();
-        //cout << glfwGetTime() << "||" << end_time << endl;
+        cout << glfwGetTime() << "||" << end_time << endl;
         finish_time = glfwGetTime() + end_time;
-        //cout << finish_time << endl;
+        cout << finish_time << endl;
     }
 
 

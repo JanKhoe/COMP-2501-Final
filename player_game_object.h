@@ -5,10 +5,13 @@
 
 namespace game {
 
+    enum WeaponType {
+		PISTOL,
+		SHOTGUN
+	};
+
     // Inherits from GameObject
     class PlayerGameObject : public GameObject {
-
-        
 
         public:
 
@@ -25,14 +28,11 @@ namespace game {
 
             bool isSuperActive;
 
-            void incrementCoinCount();
-            
-            bool isInvincible;
+            WeaponType weapon;
+
         protected:
-            
-            int coins_collected;
             Timer SuperTime;
-            Timer iFrames;
+            
             
 
     }; // class PlayerGameObject
