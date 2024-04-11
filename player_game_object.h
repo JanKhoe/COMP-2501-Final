@@ -24,9 +24,15 @@ namespace game {
             void SuperActive();
 
             bool isSuperActive;
-        protected:
-            Timer SuperTime;
+
+            void incrementCoinCount();
             
+            bool isInvincible;
+        protected:
+            
+            int coins_collected;
+            Timer SuperTime;
+            Timer iFrames;
             
 
     }; // class PlayerGameObject

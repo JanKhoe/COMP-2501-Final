@@ -1,5 +1,6 @@
 #include "player_game_object.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
 
 namespace game {
 
@@ -12,7 +13,10 @@ PlayerGameObject::PlayerGameObject(const glm::vec3 &position, Geometry *geom, Sh
     : GameObject(position, geom, shader, texture) {
     health = 3;
     isSuperActive = false;
+    isInvincible = false;
     SuperTime = Timer();
+    iFrames = Timer();
+    coins_collected = 0;
 }
 
 // Update function for moving the player object around
@@ -24,6 +28,11 @@ void PlayerGameObject::Update(double delta_time) {
         isSuperActive = false;
     }
 
+    if (iFrames.Finished()) {
+        isInvincible = false;
+        //std::cout << "timer done" << std::endl;
+    }
+
 	// Call the parent's update method to move the object in standard way, if desired
 	GameObject::Update(delta_time);
 }
@@ -31,6 +40,16 @@ void PlayerGameObject::Update(double delta_time) {
 void PlayerGameObject::SuperActive() {
     SuperTime.Start(3);
     isSuperActive = true;
+}
+
+void PlayerGameObject::incrementCoinCount() {
+    coins_collected += 1;
+    if (coins_collected == 3) {
+        std::cout << "I FRAMES ACTIVAITED" << std::endl;
+        coins_collected = 0;
+        iFrames = Timer(5);
+        isInvincible = true;
+    }
 }
 
 void PlayerGameObject::Render(glm::mat4 view_matrix, double current_time) {

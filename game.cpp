@@ -422,7 +422,7 @@ void Game::Update(double delta_time)
     current_time_ += delta_time;
 
     
-    int EnemyTypes = 2;
+    int EnemyTypes = 3;
     if (EnemySpawnTimer.Finished()) {
         if (!canMove) {
             EnemySpawnTimer = Timer();
@@ -452,6 +452,12 @@ void Game::Update(double delta_time)
             patrol->SetTarget(playerContainer);
             game_objects_.insert(game_objects_.begin() + game_objects_.size()-2, patrol);
         }
+        else if (EnemyToSpawn == 2) {
+            Orbit_EnemyGameObject* orbit = new Orbit_EnemyGameObject(glm::vec3(xPos - 5 + playerContainer->GetPosition().x, yPos - 5 + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[1]);
+            orbit->SetTarget(playerContainer);
+            game_objects_.insert(game_objects_.begin() + game_objects_.size() - 2, orbit);
+        }
+
         EnemySpawnTimer.Start(2);
     }
     
@@ -460,7 +466,7 @@ void Game::Update(double delta_time)
         if (!canMove) {
             return;
         }
-        int numItems = 2;
+        int numItems = 3;
         int randItem = rand() % numItems;
         if (randItem == 0) {
             game_objects_.insert(game_objects_.begin() + 1, new CollectibleGameObject(glm::vec3((rand() % 5) + playerContainer->GetPosition().x, (rand() % 5) + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[9]));
@@ -469,6 +475,9 @@ void Game::Update(double delta_time)
         else if (randItem == 1) {
             game_objects_.insert(game_objects_.begin() + 1, new SuperCollectibleGameObject(glm::vec3((rand() % 5) + playerContainer->GetPosition().x, (rand() % 5) + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[4]));
 
+        }
+        else if (randItem == 2) {
+            game_objects_.insert(game_objects_.begin() + 1, new InvincibleCollectibleGameObject(glm::vec3((rand() % 5) + playerContainer->GetPosition().x, (rand() % 5) + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[4]));
         }
         SodaSpawnTimer.Start(3);
 
@@ -507,20 +516,19 @@ void Game::Update(double delta_time)
 
         blade->Update(delta_time);
 
-        // Check for collision with other game objects
-        // Note the loop bounds: we avoid testing the last object since
-        // it's the background covering the whole game world
-        //for (int j = i + 1; j < (game_objects_.size()-1); j++) {
-        //    GameObject* other_game_object = game_objects_[j];
-
-            // Compute distance between object i and object j
-        //    float distance = glm::length(current_game_object->GetPosition() - other_game_object->GetPosition());
-            // If distance is below a threshold, we have a collision
-          //  if (distance < 0.8f) {
-                // This is where you would perform collision response between objects
-
-            //}
-        //}
+        if (current_game_object->canDestroyItems) {
+            //std::cout << "THIS CAN DESTROY ITEMS" << std::endl;
+            for (int i = 1; i < game_objects_.size() - 1; i++) {
+                GameObject* other_game_object = game_objects_[i];
+                float distance = glm::length(current_game_object->GetPosition() - other_game_object->GetPosition());
+                if (distance < 0.8f) {
+                    if (other_game_object->type == COLLECTIBLE) {
+                        delete other_game_object;
+                        game_objects_.erase(game_objects_.begin() + i);
+                    }
+                }
+            }
+        }
     }
 
     for (int i = 1; i < game_objects_.size() - 1; i++) {
@@ -534,6 +542,9 @@ void Game::Update(double delta_time)
                 other_game_object->type = EXPLOSION;
                 EnemyGameObject* curEnemy = dynamic_cast<EnemyGameObject*>(other_game_object);
                 curEnemy->die();
+                if (player->isInvincible) {
+                    continue;
+                }
                 if (--player->health <= 0) {
                     canMove = false;
                     player->SetTexture(tex_[8]);
@@ -549,6 +560,10 @@ void Game::Update(double delta_time)
                 else if (curCollectible->GetCollectType() == JUICERJUICE) {
                     player->SuperActive();
                     recoilForce = 0.0f;
+                }
+
+                if (curCollectible->GetCollectType() == INVINCIBLE) {
+                    player->incrementCoinCount();
                 }
                 
                 delete other_game_object;

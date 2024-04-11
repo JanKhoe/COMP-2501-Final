@@ -14,9 +14,11 @@
 #include "player_game_object.h"
 #include "collectible_game_object.h"
 #include "super_collectible_game_object.h"
+#include "invincible_collectible_game_object.h"
 #include "enemy_game_object.h"
 #include "patrol_chase_enemy_game_object.h"
 #include "charge_enemy_game_object.h"
+#include "orbit_enemy_game_object.h"
 
 #include "text_game_object.h"
 

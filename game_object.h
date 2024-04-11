@@ -53,6 +53,8 @@ namespace game {
             Timer lifespan;
             GameObjType type;
 
+            bool canDestroyItems;
+
 
         protected:
             // Object's Transform Variables
