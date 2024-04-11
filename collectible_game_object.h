@@ -5,7 +5,7 @@
 
 namespace game {
 
-    enum collectType { ORANGESODA, JUICERJUICE, INVINCIBLE };
+    enum collectType { ORANGESODA, JUICERJUICE, NOOBMAXXER };
 
     // Inherits from GameObject
     class CollectibleGameObject : public GameObject {

@@ -21,10 +21,9 @@ set(HDRS
     enemy_game_object.h
     patrol_chase_enemy_game_object.h
     charge_enemy_game_object.h
-    orbit_enemy_game_object.h
     collectible_game_object.h
-    super_collectible_game_object.h
     text_game_object.h
+    super_collectible_game_object.h
 )
  
 set(SRCS
@@ -43,10 +42,10 @@ set(SRCS
     enemy_game_object.cpp
     patrol_chase_enemy_game_object.cpp
     charge_enemy_game_object.cpp
-    orbit_enemy_game_object.cpp
     collectible_game_object.cpp
-    super_collectible_game_object.cpp
     text_game_object.cpp
+    super_collectible_game_object.cpp
+
     sprite_vertex_shader.glsl
     sprite_fragment_shader.glsl
     particle_vertex_shader.glsl

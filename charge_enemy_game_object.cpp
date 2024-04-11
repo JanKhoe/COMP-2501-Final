@@ -1,8 +1,5 @@
 #include "charge_enemy_game_object.h"
 #include <iostream>
-#include <GL/glew.h>
-#include <glm/gtc/matrix_transform.hpp> 
-#include <GLFW/glfw3.h>
 using namespace std;
 
 
@@ -16,7 +13,7 @@ namespace game {
 		orbitPos = position;
 		orbitRadius = 1.0f;
 		seekRadius = 2;
-		charge_up_speed = 2.0f;
+		charge_up_speed = 1;
 		launch_speed = 10.0f;
 		current_time = 0;
 	
@@ -41,6 +38,17 @@ namespace game {
 			return;
 		}
 		
+		//switch (state)
+		//{
+		//case game::Charge_EnemyGameObject::PATROL:
+		//	PatrolInput(delta_time);
+//
+		//case game::Charge_EnemyGameObject::READY:
+		//	ReadyInput(delta_time);
+		//case game::Charge_EnemyGameObject::LAUNCH:
+		//	LaunchInput(delta_time);
+		
+		//}
 
 		if (state == PATROL) {
 			PatrolInput(delta_time);
@@ -71,24 +79,21 @@ namespace game {
 		if (abs(glm::length(position_ - target_->GetPosition())) < seekRadius) {
 			startingPos = position_;
 			state = Charge_EnemyGameObject::READY;
-			windUp = Timer(0.5f);
-			//cout << "Charging Up!" << endl;
+			windUp = Timer(1.5f);
+			cout << "Charging Up!" << endl;
 		}
-
-		angle_ = current_time + glm::pi<float>()/2;
-		
+		return;
 	}
 
 	void Charge_EnemyGameObject::ReadyInput(double delta_time) {
 		//A - B = vector from B to A
 		glm::vec3 desired = glm::normalize(startingPos - target_->GetPosition());
-		angle_ = glm::atan(-desired.y, -desired.x);
 		position_ += desired * charge_up_speed * (float)delta_time;
 		if (windUp.Finished()) {
 			state = LAUNCH;
 			startingPos = position_;
 			targetPos = target_->GetPosition();
-			//cout << "LAUNCHING" << endl;
+			cout << "LAUNCHING" << endl;
 		}
 
 	}
@@ -96,7 +101,6 @@ namespace game {
 	void Charge_EnemyGameObject::LaunchInput(double delta_time) {
 		//glm::vec3 desired = (targetPos - startingPos) + glm::normalize(targetPos - startingPos);
 		glm::vec3 desired = (glm::length(targetPos - startingPos) + 1) * glm::normalize(targetPos - startingPos);
-		angle_ = glm::atan(desired.y, desired.x);
 		//float progress = glm::length((position_ - startingPos) - (desired - startingPos));
 		float progress = (glm::length(position_ - startingPos) / glm::length(desired - startingPos)) + 0.1f;
 		//cout << progress << endl;
@@ -104,7 +108,7 @@ namespace game {
 			state = PATROL;
 			orbitPos = glm::vec3(position_.x - orbitRadius, position_.y, 0);
 			current_time = 0;
-			//cout << "Finished Launch" << endl;
+			cout << "Finished Launch" << endl;
 		}
 		position_ += glm::normalize(desired - startingPos) * (launch_speed * map(progress) * (float)delta_time);
 	}
