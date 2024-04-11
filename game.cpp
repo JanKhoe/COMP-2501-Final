@@ -342,78 +342,34 @@ void Game::HandleControls(double delta_time)
         VerVelocity = -0.0004;
         applied_force_ver = true;
     }
-    if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS || glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-        float fireSpeed = 1.0f;
+    if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS) {
 
         //if (!player->isSuperActive) {
-            recoilForce = 0.01f;
+            recoilForce = 0.001f;
         //}
         if (fireRate.Finished()) {
-            // Different Weapons
-            if (player->weapon == PISTOL) {
-				fireSpeed = 0.5f;
-                bullets_.push_back(new Bullet(playerContainer->GetPosition(), sprite_, &sprite_shader_, tex_[5]));
-                //bullets_[bullets_.size() - 1]->SetRotation(player->GetRotation());
-                bullets_[bullets_.size() - 1]->SetRotation(player->GetRotation() - glm::pi<float>() / 2.0f);
-                // Ensure bullets catch up to the player's speed
-                bullets_[bullets_.size() - 1]->speed += glm::length(globalVel);
-
-                bullettrails_.push_back(new ParticleSystem(glm::vec3(0.0f, 0.0f, 0.0f), bullettrail_, &particle_shader_, tex_[4], bullets_[bullets_.size() - 1]));
-                bullettrails_[bullettrails_.size() - 1]->SetScale(0.1f);
-                globalVel += (-1.0f * player->GetBearing() * recoilForce);
-			}
-            else if (player->weapon == SHOTGUN) {
-				fireSpeed = 1.0f;
-                float theta;
-                for (int i = 0; i < 5; i++) {
-                    bullets_.push_back(new Bullet(playerContainer->GetPosition(), sprite_, &sprite_shader_, tex_[5]));
-                    //bullets_[bullets_.size() - 1]->SetRotation(player->GetRotation());
-                    theta = ((2.0 * (rand() % 10000) / 10000.0f - 1.0f) * 0.13f + glm::pi<float>());
-
-                    bullets_[bullets_.size() - 1]->SetRotation((player->GetRotation() - glm::pi<float>() * 1.5f) + theta);
-                    bullets_[bullets_.size() - 1]->speed -= (rand() % 10) + 10;
-                    // Ensure bullets catch up to the player's speed
-                    bullets_[bullets_.size() - 1]->speed += glm::length(globalVel);
-
-                    bullettrails_.push_back(new ParticleSystem(glm::vec3(0.0f, 0.0f, 0.0f), bullettrail_, &particle_shader_, tex_[4], bullets_[bullets_.size() - 1]));
-                    bullettrails_[bullettrails_.size() - 1]->SetScale(0.1f);
-                }
-                globalVel += (-1.0f * player->GetBearing() * (recoilForce * 5));
-			}
-
+            bullets_.push_back(new Bullet(playerContainer->GetPosition(), sprite_, &sprite_shader_, tex_[5]));
+            //bullets_[bullets_.size() - 1]->SetRotation(player->GetRotation());
+            bullets_[bullets_.size() - 1]->SetRotation(player->GetRotation() - glm::pi<float>() / 2.0f);
+            fireRate.Start(1);
             if (player->isSuperActive) {
-                fireSpeed /= 5;
+                fireRate.Start(0.1);
             }
-
-            fireRate.Start(fireSpeed);
+            
+            bullettrails_.push_back(new ParticleSystem(glm::vec3(0.0f, 0.0f, 0.0f), bullettrail_, &particle_shader_, tex_[4], bullets_[bullets_.size() - 1]));
+            bullettrails_[bullettrails_.size() - 1]->SetScale(0.1f);
+            globalVel += (-1.0f * player->GetBearing() * recoilForce);
         }
+
     }
-    if (glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
-		player->SuperActive();
-	}
+
     if (glfwGetKey(window_, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window_, true);
-    }
-
-    // Handle weapon switching
-    if (glfwGetKey(window_, GLFW_KEY_1) == GLFW_PRESS) {
-        player->weapon = PISTOL;
-    }
-    if (glfwGetKey(window_, GLFW_KEY_2) == GLFW_PRESS) {
-        player->weapon = SHOTGUN;
     }
 
     //glm::vec3 HorMovement = HorVelocity * player->GetRight();
     glm::vec3 VerMovement = VerVelocity * dir * (float)delta_time;
     globalVel += VerMovement;
-
-    // Increase friction the higher the velocity
-    if (glm::length(globalVel) > 0.05) {
-        friction = 0.001f + (glm::length(globalVel) * 0.3f);
-    } else {
-        friction = 0.001f + (glm::length(globalVel) * 0.1f);
-    }
-
     if (!applied_force_ver) {
         if (globalVel.x != 0) {
             if (globalVel.x > 0) {
@@ -450,12 +406,10 @@ void Game::HandleControls(double delta_time)
     
     //player->SetPosition(curpos + (HorMovement + VerMovement));
     //std::cout << globalVel.x << " || " << globalVel.y << std::endl;
-    /*
-    if (glm::length(globalVel) > 0.0) {
+    if (glm::length(globalVel) > 0.003) {
         //std::cout << "capping velocity" << std::endl;
-        globalVel -= globalVel / 3.0f;
+        globalVel = glm::normalize(globalVel) * 0.003f;
     }
-    */
     playerContainer->SetPosition(curpos + (globalVel));
     //std::cout << playerContainer->GetPosition().x << playerContainer->GetPosition().y << std::endl;
 }
@@ -468,7 +422,7 @@ void Game::Update(double delta_time)
     current_time_ += delta_time;
 
     
-    int EnemyTypes = 2;
+    int EnemyTypes = 3;
     if (EnemySpawnTimer.Finished()) {
         if (!canMove) {
             EnemySpawnTimer = Timer();
@@ -498,6 +452,12 @@ void Game::Update(double delta_time)
             patrol->SetTarget(playerContainer);
             game_objects_.insert(game_objects_.begin() + game_objects_.size()-2, patrol);
         }
+        else if (EnemyToSpawn == 2) {
+            Orbit_EnemyGameObject* orbit = new Orbit_EnemyGameObject(glm::vec3(xPos - 5 + playerContainer->GetPosition().x, yPos - 5 + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[1]);
+            orbit->SetTarget(playerContainer);
+            game_objects_.insert(game_objects_.begin() + game_objects_.size() - 2, orbit);
+        }
+
         EnemySpawnTimer.Start(2);
     }
     
@@ -506,7 +466,7 @@ void Game::Update(double delta_time)
         if (!canMove) {
             return;
         }
-        int numItems = 2;
+        int numItems = 3;
         int randItem = rand() % numItems;
         if (randItem == 0) {
             game_objects_.insert(game_objects_.begin() + 1, new CollectibleGameObject(glm::vec3((rand() % 5) + playerContainer->GetPosition().x, (rand() % 5) + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[9]));
@@ -515,6 +475,9 @@ void Game::Update(double delta_time)
         else if (randItem == 1) {
             game_objects_.insert(game_objects_.begin() + 1, new SuperCollectibleGameObject(glm::vec3((rand() % 5) + playerContainer->GetPosition().x, (rand() % 5) + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[4]));
 
+        }
+        else if (randItem == 2) {
+            game_objects_.insert(game_objects_.begin() + 1, new InvincibleCollectibleGameObject(glm::vec3((rand() % 5) + playerContainer->GetPosition().x, (rand() % 5) + playerContainer->GetPosition().y, 0.0f), sprite_, &sprite_shader_, tex_[4]));
         }
         SodaSpawnTimer.Start(3);
 
@@ -553,20 +516,19 @@ void Game::Update(double delta_time)
 
         blade->Update(delta_time);
 
-        // Check for collision with other game objects
-        // Note the loop bounds: we avoid testing the last object since
-        // it's the background covering the whole game world
-        //for (int j = i + 1; j < (game_objects_.size()-1); j++) {
-        //    GameObject* other_game_object = game_objects_[j];
-
-            // Compute distance between object i and object j
-        //    float distance = glm::length(current_game_object->GetPosition() - other_game_object->GetPosition());
-            // If distance is below a threshold, we have a collision
-          //  if (distance < 0.8f) {
-                // This is where you would perform collision response between objects
-
-            //}
-        //}
+        if (current_game_object->canDestroyItems) {
+            //std::cout << "THIS CAN DESTROY ITEMS" << std::endl;
+            for (int i = 1; i < game_objects_.size() - 1; i++) {
+                GameObject* other_game_object = game_objects_[i];
+                float distance = glm::length(current_game_object->GetPosition() - other_game_object->GetPosition());
+                if (distance < 0.8f) {
+                    if (other_game_object->type == COLLECTIBLE) {
+                        delete other_game_object;
+                        game_objects_.erase(game_objects_.begin() + i);
+                    }
+                }
+            }
+        }
     }
 
     for (int i = 1; i < game_objects_.size() - 1; i++) {
@@ -580,6 +542,9 @@ void Game::Update(double delta_time)
                 other_game_object->type = EXPLOSION;
                 EnemyGameObject* curEnemy = dynamic_cast<EnemyGameObject*>(other_game_object);
                 curEnemy->die();
+                if (player->isInvincible) {
+                    continue;
+                }
                 if (--player->health <= 0) {
                     canMove = false;
                     player->SetTexture(tex_[8]);
@@ -595,6 +560,10 @@ void Game::Update(double delta_time)
                 else if (curCollectible->GetCollectType() == JUICERJUICE) {
                     player->SuperActive();
                     recoilForce = 0.0f;
+                }
+
+                if (curCollectible->GetCollectType() == INVINCIBLE) {
+                    player->incrementCoinCount();
                 }
                 
                 delete other_game_object;
